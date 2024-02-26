@@ -14,6 +14,7 @@ download_uris = [
 
 CHUNK_SIZE = 4 * 1024 #kb
 
+# try to get file_size from their header
 async def get_header(url:str):
     async with aiohttp.ClientSession() as session:
         async with session.head(url) as r:
