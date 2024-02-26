@@ -1,5 +1,7 @@
 import aiohttp
 import asyncio
+from tqdm import tqdm
+from contextlib import closing
 import os
 
 download_uris = [
@@ -22,9 +24,16 @@ async def download_file(url:str):
                 os.mkdir('./downloads/')
             except Exception as E:
                 pass
-            with open(f'./downloads/{filename}', 'wb') as f:
+            with open(f'./downloads/{filename}', 'wb') as f, tqdm(
+                desc = filename,
+                total = int(response.headers.get('Content-Length',0)),
+                unit = 'iB',
+                unit_scale=True,
+                unit_divisor=1024,
+            ) as bar:
                 async for chunk in response.content.iter_chunked(CHUNK_SIZE):
                     if chunk:
-                        f.write(chunk)
+                        size = f.write(chunk)
+                        bar.update(size)
 
-asyncio.run(download_file(download_uris[0]))
+asyncio.run(download_file(download_uris[1]))
