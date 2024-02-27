@@ -1,6 +1,5 @@
 import aiohttp
 import asyncio
-# from tqdm import tqdm
 from contextlib import closing
 import os
 
@@ -9,18 +8,19 @@ import mebar
 download_uris = [
     "https://divvy-tripdata.s3.amazonaws.com/Divvy_Trips_2018_Q4.zip",
     "https://divvy-tripdata.s3.amazonaws.com/Divvy_Trips_2019_Q1.zip",
-    # "https://divvy-tripdata.s3.amazonaws.com/Divvy_Trips_2019_Q2.zip",
-    # "https://divvy-tripdata.s3.amazonaws.com/Divvy_Trips_2019_Q3.zip",
-    # "https://divvy-tripdata.s3.amazonaws.com/Divvy_Trips_2019_Q4.zip",
-    # "https://divvy-tripdata.s3.amazonaws.com/Divvy_Trips_2020_Q1.zip",
-    # "https://divvy-tripdata.s3.amazonaws.com/Divvy_Trips_2220_Q1.zip",
+    "https://divvy-tripdata.s3.amazonaws.com/Divvy_Trips_2019_Q2.zip",
+    "https://divvy-tripdata.s3.amazonaws.com/Divvy_Trips_2019_Q3.zip",
+    "https://divvy-tripdata.s3.amazonaws.com/Divvy_Trips_2019_Q4.zip",
+    "https://divvy-tripdata.s3.amazonaws.com/Divvy_Trips_2020_Q1.zip",
+    "https://divvy-tripdata.s3.amazonaws.com/Divvy_Trips_2220_Q1.zip",
 ]
 # create chunk_size const for 4 * 1024 kbs
 CHUNK_SIZE = 4 * 1024 #kb
 
 async def download_file(url:str):
     async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
+        # set timeout to None
+        async with session.get(url, timeout = None) as response:
             # get filename and it's extension by str.split() method
             file_name = url.split('/')[-1]
 
@@ -50,4 +50,12 @@ async def multiple(urls):
     tasks = [download_file(url) for url in urls]
     await asyncio.gather(*tasks)
         
-asyncio.run(multiple(download_uris))
+# run with prefered high-level method asyncio.run() 
+asyncio.run(multiple(download_uris)) # uncomment this
+    
+# or, run with low-level method
+# call the event loop
+# loop = asyncio.get_event_loop()
+
+# then run until complete
+# loop.run_until_complete(multiple(download_uris))
