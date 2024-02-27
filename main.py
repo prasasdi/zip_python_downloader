@@ -1,6 +1,7 @@
 import aiohttp
 import asyncio
 from contextlib import closing
+from zipfile import ZipFile
 import os
 
 import mebar
@@ -21,16 +22,15 @@ async def download_file(url:str):
     async with aiohttp.ClientSession() as session:
         # set timeout to None
         async with session.get(url, timeout = None) as response:
+            # get filename and it's extension by str.split() method
+            file_name = url.split('/')[-1]
+            # get file_size by looking at their header['Content-Length']
+            file_size = int(response.headers.get('Content-Length',0))
+            
             if (response.status != 200): 
                 print(f'Won\'\\t download {file_name}: message {response.status}')
                 return
 
-            # get filename and it's extension by str.split() method
-            file_name = url.split('/')[-1]
-
-            # get file_size by looking at their header['Content-Length']
-            file_size = int(response.headers.get('Content-Length',0))
-            
             # force to create download directory
             try :
                 os.mkdir('./downloads/')
@@ -38,8 +38,8 @@ async def download_file(url:str):
                 # otherwise will throw Exception if download dir is already exist
                 pass
 
-            
-            with open(f'./downloads/{file_name}', 'wb') as f:
+            zip_file_path = f'./downloads/{file_name}'
+            with open(zip_file_path, 'wb') as f:
                 # would work as well with ... as .... Pass parameter such as file_name and file_size
                 bar = mebar.get_bar(file_name, file_size)
 
@@ -48,7 +48,24 @@ async def download_file(url:str):
                     if chunk:
                         size = f.write(chunk)
                         bar.update(size)
-                print(f'done with {file_name}')
+                        bar.refresh()
+
+                # make sure to close otherwize ZipFile won't able to read the final .zip
+                f.close()
+
+                # close the bar as well
+                bar.clear()
+                
+                print()
+                print(f'{file_name} extract to downloads')
+
+                # create myzip instance by file_path
+                with ZipFile(zip_file_path) as myzip:
+                    # assume the csv file name is the zip file name as well
+                    file_name_exc = file_name.split('.')[0]
+                    myzip.extract(f'{file_name_exc}.csv', path='downloads\\')
+                    print(f'{url} Complete')
+
 
 
 # gather coroutine with asyncio.gather(coros)
