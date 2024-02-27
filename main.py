@@ -21,6 +21,10 @@ async def download_file(url:str):
     async with aiohttp.ClientSession() as session:
         # set timeout to None
         async with session.get(url, timeout = None) as response:
+            if (response.status != 200): 
+                print(f'Won\'\\t download {file_name}: message {response.status}')
+                return
+
             # get filename and it's extension by str.split() method
             file_name = url.split('/')[-1]
 
@@ -44,6 +48,8 @@ async def download_file(url:str):
                     if chunk:
                         size = f.write(chunk)
                         bar.update(size)
+                print(f'done with {file_name}')
+
 
 # gather coroutine with asyncio.gather(coros)
 async def multiple(urls):
